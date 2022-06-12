@@ -1,0 +1,66 @@
+﻿@page "/"
+@inject HttpClient Http
+@using Models
+@inject IConfiguration Configuration
+
+
+@if (allPosts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>Bienvenido al blog</h1>
+    <section class="text-gray-700 body-font">
+        <div class="container">
+            <div class="card-deck">
+                @foreach (var post in allPosts.objects)
+                {
+                    <div class="card h-100" style="margin:0;">
+                        <a href="post/@post.Slug" target="_self" role="button" class="card-link">
+                            <div class="card-body">
+                                <h3 class="card-title">@post.Title</h3>
+                                <p class="card-text">
+                                    Read
+                                    <i class="oi oi-arrow-circle-right" />
+                                </p>
+                            </div>
+                        </a>
+                        <div class="card-footer">
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Created: @post.Published_at.ToLocalTime()
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+
+@code {
+    private AllPost allPosts = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string cosmic_bucket_slug = Configuration["AppSettings:COSMIC_BUCKET_SLUG"];
+        string cosmic_read_key = Configuration["AppSettings:COSMIC_READ_KEY"];
+        var url = "https://api.cosmicjs.com/v1/{COSMIC_BUCKET_SLUG}/objects?pretty=true&hide_metafields=true&type=posts&read_key={COSMIC_READ_KEY}";
+        url = url.Replace("{COSMIC_BUCKET_SLUG}", cosmic_bucket_slug);
+        url = url.Replace("{COSMIC_READ_KEY}", cosmic_read_key);
+        allPosts = await Http.GetFromJsonAsync<AllPost>(url);
+    }
+    public class AllPost
+    {
+        public int limit { get; set; }
+        public int total { get; set; }
+        public Post[] objects { get; set; }
+    }
+    public class PostObject
+    {
+        public List<Post> _items { get; set; }
+    }
+}

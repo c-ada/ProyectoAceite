@@ -1,0 +1,52 @@
+@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Graph
+@inject Microsoft.Graph.GraphServiceClient GraphServiceClient
+@attribute [Authorize]
+
+<h3>List of users</h3>
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="container">
+            <div class="card-deck">
+                @foreach (var user in users)
+                {
+                    <div class="card h-100" style="margin:0;">
+                            <div class="card-body">
+                                <h3 class="card-title">@user.DisplayName</h3>
+                                <p class="card-text">
+                                    @user.Mail
+                                </p>
+                            </div>
+                        <div class="card-footer">
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Job itle: @user.JobTitle
+                                    Office Location: @user.OfficeLocation
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+}
+
+@code {
+    IGraphServiceUsersCollectionPage? users;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            users = await GraphServiceClient.Users.Request().GetAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
